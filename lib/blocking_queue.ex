@@ -1,0 +1,2 @@
+defmodule BlockingQueue do
+end
