@@ -29,7 +29,8 @@ defmodule BlockingQueue.Mixfile do
   defp deps do
     [
       {:excheck, "~> 0.2", only: :test},
-      {:triq, github: "krestenkrab/triq", only: :test} 
+      {:triq, github: "krestenkrab/triq", only: :test},
+      {:inch_ex, only: :docs}
     ]
   end
 end
