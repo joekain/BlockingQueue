@@ -17,7 +17,7 @@ is work to do.
 Add a dependency in your mix.exs:
 
 ```elixir
-deps: [{:blocking_queue, "~> 1.0.0"}, ...]
+deps: [{:blocking_queue, "~> 1.0.0"}]
 ```
 
 ## Examples

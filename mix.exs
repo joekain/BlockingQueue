@@ -26,8 +26,7 @@ defmodule BlockingQueue.Mixfile do
 
   defp description do
   """
-  BlockingQueue is a simple queue implemented as a GenServer.  It has a fixed
-  maximum length established when it is created.
+  BlockingQueue is a simple queue implemented as a GenServer.  It has a fixed maximum length established when it is created.
   """
   end
 
