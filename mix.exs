@@ -20,7 +20,9 @@ defmodule BlockingQueue.Mixfile do
     [
       {:excheck, "~> 0.2", only: :test},
       {:triq, github: "krestenkrab/triq", only: :test},
-      {:inch_ex, only: :docs}
+      {:inch_ex, only: :docs},
+      {:earmark, "~> 0.1", only: :dev},
+      {:ex_doc, "~> 0.7", only: :dev}
     ]
   end
 

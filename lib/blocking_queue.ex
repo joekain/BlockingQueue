@@ -11,9 +11,9 @@ defmodule BlockingQueue do
 
   ## Examples
 
-    {:ok, pid} = BlockingQueue.start_link(5)
-    BlockingQueue.push(pid, "Hi")
-    BlockingQueue.pop(pid) # should return "Hi"
+      {:ok, pid} = BlockingQueue.start_link(5)
+      BlockingQueue.push(pid, "Hi")
+      BlockingQueue.pop(pid) # should return "Hi"
   """
   use GenServer
 
