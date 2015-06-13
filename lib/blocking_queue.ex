@@ -62,6 +62,9 @@ defmodule BlockingQueue do
 
   @doc """
   Pushes a new item into the queue.  Blocks if the queue is full.
+
+  `pid` is the process ID of the BlockingQueue server.
+  `item` is the value to be pushed into the queue.  This can be anything.
   """
   @spec push(pid, any) :: nil
   def push(pid, item), do: GenServer.call(pid, {:push, item})
