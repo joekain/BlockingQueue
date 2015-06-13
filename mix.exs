@@ -27,6 +27,9 @@ defmodule BlockingQueue.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    []
+    [
+      {:excheck, "~> 0.2", only: :test},
+      {:triq, github: "krestenkrab/triq", only: :test} 
+    ]
   end
 end
