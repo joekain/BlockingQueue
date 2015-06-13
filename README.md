@@ -16,19 +16,19 @@ is work to do.
 
 Add a dependency in your mix.exs:
 
-{% highlight elixir %}
+```elixir
 deps: [{:blocking_queue, "~> 1.0.0"}, ...]
-{% endhighlight %}
+```
 
 ## Examples
 
 A simple example:
 
-{% highlight elixir %}
+```elixir
 {:ok, pid} = BlockingQueue.start_link(5)
 BlockingQueue.push(pid, "Hi")
 BlockingQueue.pop(pid) # should return "Hi"
-{% endhighlight %}
+```
 
 The queue is designed to be used from more complex examples in which the
 producer and consumer are in separate processes and run assynchronously to each
