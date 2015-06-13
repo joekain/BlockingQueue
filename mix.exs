@@ -3,34 +3,40 @@ defmodule BlockingQueue.Mixfile do
 
   def project do
     [app: :blocking_queue,
-     version: "0.0.1",
+     version: "1.0.0",
      elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps]
+     deps: deps,
+     description: description,
+     package: package]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type `mix help compile.app` for more information
   def application do
     [applications: [:logger]]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:mydep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
-  #
-  # Type `mix help deps` for more examples and options
   defp deps do
     [
       {:excheck, "~> 0.2", only: :test},
       {:triq, github: "krestenkrab/triq", only: :test},
       {:inch_ex, only: :docs}
     ]
+  end
+
+  defp description do
+  """
+  BlockingQueue is a simple queue implemented as a GenServer.  It has a fixed
+  maximum length established when it is created.
+  """
+  end
+
+  defp package do
+    [files: ["lib", "mix.exs", "README.md", "LICENSE"],
+     contributors: ["Joseph Kain"],
+     licenses: ["MIT"],
+     links: %{
+       "github" => "https://github.com/joekain/blocking_queue"
+     }]
   end
 end
