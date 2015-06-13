@@ -1,9 +1,30 @@
 defmodule BlockingQueue do
+  @moduledoc """
+  BlockingQueue is a simple queue implemented as a GenServer.  It has a fixed
+  maximum length.
+
+  The queue is designed to decouple but limit the latency of a producer and
+  consumer.  When pushing to a full queue the `push` operation blocks
+  preventing the producer from making progress until the consumer catches up.
+  Likewise, when calling `pop` on an empty queue the call blocks until there
+  is work to do.
+
+  ## Examples
+
+    {:ok, pid} = BlockingQueue.start_link(5)
+    BlockingQueue.push(pid, "Hi")
+    BlockingQueue.pop(pid) # should return "Hi"
+  """
   use GenServer
 
   # Can I get this from somewhere?
   @type on_start :: {:ok, pid} | :ignore | {:error, {:already_started, pid} | term}
 
+  @doc """
+  Start a queue process with GenServer.start_link/2.
+
+  `n` Is the maximum queue depth.
+  """
   @spec start_link(pos_integer()) :: on_start
   def start_link(n), do: GenServer.start_link(__MODULE__, n)
   def init(n), do: {:ok, {n, []}}
@@ -39,9 +60,18 @@ defmodule BlockingQueue do
     {:reply, x, {max, xs ++ [item]}}
   end
 
+  @doc """
+  Pushes a new item into the queue.  Blocks if the queue is full.
+  """
   @spec push(pid, any) :: nil
   def push(pid, item), do: GenServer.call(pid, {:push, item})
 
+  @doc """
+  Pops the least recently pushed item from the queue. Blocks if the queue is
+  empty until an item is available.
+
+  `pid` is the process ID of the BlockingQueue server.
+  """
   @spec pop(pid) :: any
   def pop(pid), do: GenServer.call(pid, :pop)
 end
