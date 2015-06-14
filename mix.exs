@@ -37,7 +37,7 @@ defmodule BlockingQueue.Mixfile do
      contributors: ["Joseph Kain"],
      licenses: ["MIT"],
      links: %{
-       "github" => "https://github.com/joekain/blocking_queue"
+       "github" => "https://github.com/joekain/BlockingQueue"
      }]
   end
 end
