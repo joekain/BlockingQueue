@@ -40,7 +40,7 @@ defmodule BlockingQueue do
 
   @spec handle_call(call_t, from_t, state_t) :: result_t
 
-  def handle_call({:push, item}, waiter, {max, list}) when length(list) > max do
+  def handle_call({:push, item}, waiter, {max, list}) when length(list) >= max do
     {:noreply, {max, list, :push, waiter, item}}
   end
 
