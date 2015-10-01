@@ -26,6 +26,27 @@ defmodule BlockingQueueTest do
     assert "World" == BlockingQueue.pop(pid)
   end
 
+  test "BlockingQueue should be able to accept a Stream of values" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+
+    ["hello", "world"]
+    |> Stream.map(&String.upcase/1)
+    |> BlockingQueue.push_stream(pid)
+
+    assert "HELLO" == BlockingQueue.pop(pid)
+    assert "WORLD" == BlockingQueue.pop(pid)
+  end
+
+  test "BlockingQueue shoud return a Stream of values" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+
+    BlockingQueue.push(pid, "Hello")
+    BlockingQueue.push(pid, "World")
+
+    list = BlockingQueue.pop_stream(pid) |> Enum.take(2)
+    assert list == ["Hello", "World"]
+  end
+
   property "BlockingQueue supports async and blocking pushes and pops" do
     for_all xs in list(int) do
       implies length(xs) > 0 do
@@ -39,6 +60,19 @@ defmodule BlockingQueueTest do
         end)
 
         Task.await(puller) == xs
+      end
+    end
+  end
+
+  property "BlockingQueue stream API supports blocking pushes and pops" do
+    for_all xs in list(int) do
+      implies length(xs) > 0 do
+        {:ok, pid} = BlockingQueue.start_link(5)
+
+        BlockingQueue.push_stream(xs, pid)
+
+        assert xs == BlockingQueue.pop_stream(pid)
+        |> Enum.take(Enum.count(xs))
       end
     end
   end
