@@ -34,7 +34,7 @@ defmodule BlockingQueue.Mixfile do
 
   defp package do
     [files: ["lib", "mix.exs", "README.md", "LICENSE"],
-     contributors: ["Joseph Kain"],
+     maintainers: ["Joseph Kain"],
      licenses: ["MIT"],
      links: %{
        "github" => "https://github.com/joekain/BlockingQueue"
