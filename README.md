@@ -34,6 +34,18 @@ The queue is designed to be used from more complex examples in which the
 producer and consumer are in separate processes and run assynchronously to each
 other.
 
+An example using the `Stream` API
+
+```elixir
+{:ok, pid} = BlockingQueue.start_link(5)
+
+[1, 2, 3]
+|> BlockingQueue.push_stream(pid)
+
+BlockingQueue.pop_stream(pid)
+|> Enum.take(3)  # Should return [1, 2, 3]
+```
+
 ## Contribute
 
 Just fork the repo, make your change, and send me a pull request.
