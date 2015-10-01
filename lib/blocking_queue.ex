@@ -77,4 +77,27 @@ defmodule BlockingQueue do
   """
   @spec pop(pid) :: any
   def pop(pid), do: GenServer.call(pid, :pop)
+
+  @doc """
+  Pushes all items in a stream into the blocking queue.  Blocks as necessary.
+
+  `stream` is the the stream of values to push into the queue.
+  `pid` is the process ID of the BlockingQueue server.
+  """
+  @spec push_stream(Enumerable.t, pid) :: nil
+  def push_stream(stream, pid) do
+    spawn_link(fn ->
+      Enum.each(stream, &push(pid, &1))
+    end)
+  end
+
+  @doc """
+  Returns a Stream where each element comes from the BlockingQueue.
+
+  `pid` is the process ID of the BlockingQueue server.
+  """
+  @spec pop_stream(pid) :: Stream.t
+  def pop_stream(pid) do
+    Stream.repeatedly(fn -> BlockingQueue.pop(pid) end)
+  end
 end
