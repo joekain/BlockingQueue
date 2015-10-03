@@ -22,7 +22,7 @@ defmodule BlockingQueue.Mixfile do
       {:triq, github: "krestenkrab/triq", only: :test},
       {:inch_ex, only: :docs},
       {:earmark, "~> 0.1", only: :dev},
-      {:ex_doc, "~> 0.7", only: :dev}
+      {:ex_doc, "~> 0.10", only: :dev}
     ]
   end
 
