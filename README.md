@@ -34,6 +34,13 @@ The queue is designed to be used from more complex examples in which the
 producer and consumer are in separate processes and run assynchronously to each
 other.
 
+An example of an infinite stream:
+```elixir
+{:ok, pid} = BlockingQueue.start_link(:infinity)
+BlockingQueue.push(pid, "Hi")
+BlockingQueue.pop(pid) # should return "Hi"
+```
+
 An example using the `Stream` API
 
 ```elixir

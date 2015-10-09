@@ -14,6 +14,10 @@ defmodule BlockingQueue do
       {:ok, pid} = BlockingQueue.start_link(5)
       BlockingQueue.push(pid, "Hi")
       BlockingQueue.pop(pid) # should return "Hi"
+
+      {:ok, pid} = BlockingQueue.start_link(:infinity)
+      BlockingQueue.push(pid, "Hi")
+      BlockingQueue.pop(pid) # should return "Hi"
   """
   use GenServer
 
@@ -23,9 +27,13 @@ defmodule BlockingQueue do
   @doc """
   Start a queue process with GenServer.start_link/2.
 
-  `n` Is the maximum queue depth.
+  `n` Is the maximum queue depth.  Pass the atom `:infinity` to start a queue
+  with no maximum.  An infinite queue will never block in `push/2` but may
+  block in `pop/1`
   """
-  @spec start_link(pos_integer()) :: on_start
+  @type maximum_t :: pos_integer()
+                   | :infinity
+  @spec start_link(maximum_t) :: on_start
   def start_link(n), do: GenServer.start_link(__MODULE__, n)
   def init(n), do: {:ok, {n, []}}
 
@@ -100,5 +108,9 @@ defmodule BlockingQueue do
   @spec pop_stream(pid) :: Enumerable.t
   def pop_stream(pid) do
     Stream.repeatedly(fn -> BlockingQueue.pop(pid) end)
+  end
+
+  def test__ do
+    start_link(:infinity)
   end
 end

@@ -47,6 +47,16 @@ defmodule BlockingQueueTest do
     assert list == ["Hello", "World"]
   end
 
+  test "BlockingQueue can be infinite" do
+    {:ok, pid} = BlockingQueue.start_link(:infinity)
+
+    BlockingQueue.push(pid, "Hello")
+    BlockingQueue.push(pid, "World")
+
+    list = BlockingQueue.pop_stream(pid) |> Enum.take(2)
+    assert list == ["Hello", "World"]
+  end
+
   property "BlockingQueue supports async and blocking pushes and pops" do
     for_all xs in list(int) do
       implies length(xs) > 0 do
