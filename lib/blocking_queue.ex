@@ -89,6 +89,7 @@ defmodule BlockingQueue do
     spawn_link(fn ->
       Enum.each(stream, &push(pid, &1))
     end)
+    nil
   end
 
   @doc """
@@ -96,7 +97,7 @@ defmodule BlockingQueue do
 
   `pid` is the process ID of the BlockingQueue server.
   """
-  @spec pop_stream(pid) :: Stream.t
+  @spec pop_stream(pid) :: Enumerable.t
   def pop_stream(pid) do
     Stream.repeatedly(fn -> BlockingQueue.pop(pid) end)
   end
