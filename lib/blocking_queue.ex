@@ -25,16 +25,18 @@ defmodule BlockingQueue do
   @type on_start :: {:ok, pid} | :ignore | {:error, {:already_started, pid} | term}
 
   @doc """
-  Start a queue process with GenServer.start_link/2.
+  Start a queue process with GenServer.start_link/3.
 
   `n` Is the maximum queue depth.  Pass the atom `:infinity` to start a queue
   with no maximum.  An infinite queue will never block in `push/2` but may
   block in `pop/1`
+
+  `options` Are options as described for `GenServer.start_link/3` and are optional.
   """
   @type maximum_t :: pos_integer()
                    | :infinity
-  @spec start_link(maximum_t) :: on_start
-  def start_link(n), do: GenServer.start_link(__MODULE__, n)
+  @spec start_link(maximum_t, [any]) :: on_start
+  def start_link(n, options \\ []), do: GenServer.start_link(__MODULE__, n, options)
   def init(n), do: {:ok, {n, []}}
 
   @typep from_t   :: {pid, any}
