@@ -128,8 +128,4 @@ defmodule BlockingQueue do
   def pop_stream(pid) do
     Stream.repeatedly(fn -> BlockingQueue.pop(pid) end)
   end
-
-  def test__ do
-    start_link(:infinity)
-  end
 end
