@@ -57,6 +57,15 @@ defmodule BlockingQueueTest do
     assert list == ["Hello", "World"]
   end
 
+  test "BlockingQueue should implement Collectable" do
+    input = ["Hello", "World"]
+
+    {:ok, pid} = BlockingQueue.start_link(5)
+    Enum.into(input, %BlockingQueue{pid: pid})
+
+    assert input == BlockingQueue.pop_stream(pid) |> Enum.take(2)
+  end
+
   property "BlockingQueue supports async and blocking pushes and pops" do
     for_all xs in list(int) do
       implies length(xs) > 0 do

@@ -9,6 +9,10 @@ defmodule BlockingQueue do
   Likewise, when calling `pop` on an empty queue the call blocks until there
   is work to do.
 
+  ## Protocols
+
+  The BlockingQueue module implements the `Collectable` protocol.
+
   ## Examples
 
       {:ok, pid} = BlockingQueue.start_link(5)
@@ -20,6 +24,19 @@ defmodule BlockingQueue do
       BlockingQueue.pop(pid) # should return "Hi"
   """
   use GenServer
+
+  @typedoc """
+  The `%BlockingQueue` struct is used with the `Collectable` protocol.
+
+  ## Examples
+
+      input = ["Hello", "World"]
+      {:ok, pid} = BlockingQueue.start_link(5)
+      Enum.into(input, %BlockingQueue{pid: pid})
+      BlockingQueue.pop_stream(pid) |> Enum.take(2)  # should return input
+  """
+  defstruct pid: nil
+  @type t :: %BlockingQueue{pid: pid()}
 
   # Can I get this from somewhere?
   @type on_start :: {:ok, pid} | :ignore | {:error, {:already_started, pid} | term}
