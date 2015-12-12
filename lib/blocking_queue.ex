@@ -25,6 +25,9 @@ defmodule BlockingQueue do
   """
   use GenServer
 
+  @empty_queue :queue.new
+  @typep queue_t :: {[any], [any]}
+
   @typedoc """
   The `%BlockingQueue` struct is used with the `Collectable` protocol.
 
@@ -54,12 +57,12 @@ defmodule BlockingQueue do
                    | :infinity
   @spec start_link(maximum_t, [any]) :: on_start
   def start_link(n, options \\ []), do: GenServer.start_link(__MODULE__, n, options)
-  def init(n), do: {:ok, {n, []}}
+  def init(n), do: {:ok, {n, @empty_queue}}
 
   @typep from_t   :: {pid, any}
-  @typep state_t  :: {pos_integer(), [any]}
-                   | {pos_integer(), [any], :pop, from_t}
-                   | {pos_integer(), [any], :push, from_t, any}
+  @typep state_t  :: {pos_integer(), queue_t}
+                   | {pos_integer(), queue_t, :pop, from_t}
+                   | {pos_integer(), queue_t, :push, from_t, any}
   @typep call_t   :: {:push, any}
                    | :pop
   @typep result_t :: {:reply, any, state_t}
@@ -67,24 +70,29 @@ defmodule BlockingQueue do
 
   @spec handle_call(call_t, from_t, state_t) :: result_t
 
-  def handle_call({:push, item}, waiter, {max, list}) when length(list) >= max do
-    {:noreply, {max, list, :push, waiter, item}}
+  def handle_call({:push, item}, waiter, {max, queue={left,right}}) when length(left) + length(right) >= max do
+    {:noreply, {max, queue, :push, waiter, item}}
   end
 
-  def handle_call({:push, item}, _, {max, list}) do
-    {:reply, nil, { max, list ++ [item] }}
+  def handle_call({:push, item}, _, {max, queue}) do
+    {:reply, nil, { max, :queue.in(item, queue) }}
   end
 
-  def handle_call({:push, item}, _, {max, [], :pop, from}) do
+  def handle_call({:push, item}, _, {max, @empty_queue, :pop, from}) do
     GenServer.reply(from, item)
-    {:reply, nil, {max, []}}
+    {:reply, nil, {max, @empty_queue}}
   end
 
-  def handle_call(:pop, from, {max, []}), do: {:noreply, {max, [], :pop, from}}
-  def handle_call(:pop, _, {max, [x | xs]}), do: {:reply, x, {max, xs}}
-  def handle_call(:pop, _, {max, [x | xs], :push, waiter, item}) do
+  def handle_call(:pop, from, {max, @empty_queue}), do: {:noreply, {max, @empty_queue, :pop, from}}
+  def handle_call(:pop, _, {max, queue}) do
+    {{:value, popped_item}, new_queue} = :queue.out(queue)
+    {:reply, popped_item, {max, new_queue}}
+  end
+  def handle_call(:pop, _, {max, queue, :push, waiter, item}) do
     GenServer.reply(waiter, nil)
-    {:reply, x, {max, xs ++ [item]}}
+    {{:value, popped_item}, popped_queue} = :queue.out(queue)
+    final_queue = :queue.in(item, popped_queue)
+    {:reply, popped_item, {max, final_queue}}
   end
 
   @doc """
