@@ -31,7 +31,7 @@ BlockingQueue.pop(pid) # should return "Hi"
 ```
 
 The queue is designed to be used from more complex examples in which the
-producer and consumer are in separate processes and run assynchronously to each
+producer and consumer are in separate processes and run asynchronously to each
 other.
 
 An example of an infinite stream:
