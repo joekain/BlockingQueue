@@ -78,16 +78,29 @@ defmodule BlockingQueue do
     {:reply, nil, { max, :queue.in(item, queue) }}
   end
 
-  def handle_call({:push, item}, _, {max, @empty_queue, :pop, from}) do
-    GenServer.reply(from, item)
+  def handle_call({:push, item}, _, {max, @empty_queue, :pop, [next|[]]}) do
+    GenServer.reply(next, item)
     {:reply, nil, {max, @empty_queue}}
   end
 
-  def handle_call(:pop, from, {max, @empty_queue}), do: {:noreply, {max, @empty_queue, :pop, from}}
+  def handle_call({:push, item}, _, {max, @empty_queue, :pop, [next|rest]}) do
+    GenServer.reply(next, item)
+    {:reply, nil, {max, @empty_queue, :pop, rest}}
+  end
+
+  def handle_call(:pop, from, {max, @empty_queue}) do
+    {:noreply, {max, @empty_queue, :pop, [from]}}
+  end
+
+  def handle_call(:pop, from, {max, @empty_queue, :pop, [next|rest]}) do
+    {:noreply, {max, @empty_queue, :pop, [from|[next|rest]]}}
+  end
+
   def handle_call(:pop, _, {max, queue}) do
     {{:value, popped_item}, new_queue} = :queue.out(queue)
     {:reply, popped_item, {max, new_queue}}
   end
+
   def handle_call(:pop, _, {max, queue, :push, waiter, item}) do
     GenServer.reply(waiter, nil)
     {{:value, popped_item}, popped_queue} = :queue.out(queue)
