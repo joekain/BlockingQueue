@@ -95,4 +95,25 @@ defmodule BlockingQueueTest do
       end
     end
   end
+
+  test "BlockingQueue can accomodate multiple waiting processes trying to pop from an empty queue" do
+    {:ok, pid} = BlockingQueue.start_link(2)
+
+    task1 = Task.async fn -> BlockingQueue.pop pid end
+    task2 = Task.async fn -> BlockingQueue.pop pid end
+    task3 = Task.async fn -> BlockingQueue.pop pid end
+
+    ref1 = Process.monitor task1.pid
+    ref2 = Process.monitor task2.pid
+    ref3 = Process.monitor task3.pid
+
+    BlockingQueue.push pid, "Hello"
+    BlockingQueue.push pid, "World"
+    BlockingQueue.push pid, "Again"
+
+    assert_receive {:DOWN, ^ref1, :process, _, :normal}, 500
+    assert_receive {:DOWN, ^ref2, :process, _, :normal}, 500
+    assert_receive {:DOWN, ^ref3, :process, _, :normal}, 500
+  end
+
 end
