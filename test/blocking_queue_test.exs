@@ -66,6 +66,33 @@ defmodule BlockingQueueTest do
     assert input == BlockingQueue.pop_stream(pid) |> Enum.take(2)
   end
 
+  test "BlockingQueue should not die after GenServer's default 5000ms when poping from an empty queue" do
+    {:ok, pid} = BlockingQueue.start_link(1)
+
+    task = Task.async(fn ->
+      BlockingQueue.pop pid
+    end)
+
+    ref = Process.monitor(task.pid)
+    :timer.sleep 6000
+    BlockingQueue.push pid, "Hello"
+    assert_receive {:DOWN, ^ref, :process, _, :normal}, 10000
+  end
+
+  test "BlockingQueue should not die after GenServer's default 5000ms when pushing to a full queue" do
+    {:ok, pid} = BlockingQueue.start_link(1)
+    BlockingQueue.push pid, "Hello"
+
+    task = Task.async(fn ->
+      BlockingQueue.push pid, "World"
+    end)
+
+    ref = Process.monitor(task.pid)
+    :timer.sleep 6000
+    BlockingQueue.pop pid
+    assert_receive {:DOWN, ^ref, :process, _, :normal}, 10000
+  end
+
   property "BlockingQueue supports async and blocking pushes and pops" do
     for_all xs in list(int) do
       implies length(xs) > 0 do

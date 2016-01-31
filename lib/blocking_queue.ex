@@ -102,7 +102,7 @@ defmodule BlockingQueue do
   `item` is the value to be pushed into the queue.  This can be anything.
   """
   @spec push(pid, any) :: nil
-  def push(pid, item), do: GenServer.call(pid, {:push, item})
+  def push(pid, item), do: GenServer.call(pid, {:push, item}, :infinity)
 
   @doc """
   Pops the least recently pushed item from the queue. Blocks if the queue is
@@ -111,7 +111,7 @@ defmodule BlockingQueue do
   `pid` is the process ID of the BlockingQueue server.
   """
   @spec pop(pid) :: any
-  def pop(pid), do: GenServer.call(pid, :pop)
+  def pop(pid), do: GenServer.call(pid, :pop, :infinity)
 
   @doc """
   Pushes all items in a stream into the blocking queue.  Blocks as necessary.
