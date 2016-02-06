@@ -71,7 +71,7 @@ defmodule BlockingQueue do
   @spec handle_call(call_t, from_t, state_t) :: result_t
 
   def handle_call({:push, item}, waiter, {max, queue={left,right}}) when length(left) + length(right) >= max do
-    {:noreply, {max, queue, :push, waiter, item}}
+    {:reply, :block, {max, queue, :push, waiter, item}}
   end
 
   def handle_call({:push, item}, _, {max, queue}) do
@@ -79,18 +79,22 @@ defmodule BlockingQueue do
   end
 
   def handle_call({:push, item}, _, {max, @empty_queue, :pop, from}) do
-    GenServer.reply(from, item)
+    send elem(from, 0), {:awaken, item}
     {:reply, nil, {max, @empty_queue}}
   end
 
-  def handle_call(:pop, from, {max, @empty_queue}), do: {:noreply, {max, @empty_queue, :pop, from}}
+  def handle_call(:pop, from, {max, @empty_queue}) do
+    {:reply, :block, {max, @empty_queue, :pop, from}}
+  end
+
   def handle_call(:pop, _, {max, queue}) do
     {{:value, popped_item}, new_queue} = :queue.out(queue)
     {:reply, popped_item, {max, new_queue}}
   end
+
   def handle_call(:pop, _, {max, queue, :push, waiter, item}) do
-    GenServer.reply(waiter, nil)
     {{:value, popped_item}, popped_queue} = :queue.out(queue)
+    send elem(waiter, 0), :awaken
     final_queue = :queue.in(item, popped_queue)
     {:reply, popped_item, {max, final_queue}}
   end
@@ -100,18 +104,36 @@ defmodule BlockingQueue do
 
   `pid` is the process ID of the BlockingQueue server.
   `item` is the value to be pushed into the queue.  This can be anything.
+  `timeout` (optional) is the timeout value passed to GenServer.call (does not impact how long pop will wait for a message from the queue)
   """
-  @spec push(pid, any) :: nil
-  def push(pid, item), do: GenServer.call(pid, {:push, item})
+  @spec push(pid, any, integer) :: nil
+  def push(pid, item, timeout \\ 5000) do
+    case GenServer.call(pid, {:push, item}, timeout) do
+      :block ->
+        receive do
+          :awaken -> :ok
+        end
+      _ -> nil
+    end
+  end
 
   @doc """
   Pops the least recently pushed item from the queue. Blocks if the queue is
   empty until an item is available.
 
   `pid` is the process ID of the BlockingQueue server.
+  `timeout` (optional) is the timeout value passed to GenServer.call (does not impact how long pop will wait for a message from the queue)
   """
-  @spec pop(pid) :: any
-  def pop(pid), do: GenServer.call(pid, :pop)
+  @spec pop(pid, integer) :: any
+  def pop(pid, timeout \\ 5000) do
+    case GenServer.call(pid, :pop, timeout) do
+      :block ->
+        receive do
+          {:awaken, data} -> data
+        end
+      data -> data
+    end
+  end
 
   @doc """
   Pushes all items in a stream into the blocking queue.  Blocks as necessary.
