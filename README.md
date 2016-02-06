@@ -17,7 +17,7 @@ is work to do.
 Add a dependency in your mix.exs:
 
 ```elixir
-deps: [{:blocking_queue, "~> 1.0.0"}]
+deps: [{:blocking_queue, "~> 1.0"}]
 ```
 
 ## Examples
@@ -56,3 +56,5 @@ BlockingQueue.pop_stream(pid)
 ## Contribute
 
 Just fork the repo, make your change, and send me a pull request.
+
+Or, feel free to file and issue and start a discussion about a new feature you have in mind.
