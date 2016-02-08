@@ -70,33 +70,63 @@ defmodule BlockingQueue do
 
   @spec handle_call(call_t, from_t, state_t) :: result_t
 
-  def handle_call({:push, item}, waiter, {max, queue={left,right}}) when length(left) + length(right) >= max do
-    {:reply, :block, {max, queue, :push, waiter, item}}
+  # start a list of waiting pushers when the first client tries to push to a full queue
+  def handle_call({:push, item}, from, {max, queue={left,right}}) when length(left) + length(right) >= max do
+    {:reply, :block, {max, queue, :push, [{from, item}]}}
+  end
+
+  # prepend new waiter to list of waiting pushers when they try to push to a full queue
+  def handle_call({:push, item}, from, {max, queue={left,right}, :push, [next|rest]}) when length(left) + length(right) >= max do
+    {:reply, :block, {max, queue, :push, [{from, item} | [next|rest]] }}
   end
 
   def handle_call({:push, item}, _, {max, queue}) do
     {:reply, nil, { max, :queue.in(item, queue) }}
   end
 
-  def handle_call({:push, item}, _, {max, @empty_queue, :pop, from}) do
-    send elem(from, 0), {:awaken, item}
+  # send item to a single waiting popper 
+  def handle_call({:push, item}, _, {max, @empty_queue, :pop, [next|[]]}) do
+    send elem(next, 0), {:awaken, item}
     {:reply, nil, {max, @empty_queue}}
   end
 
+  # send item to the next in a list of waiting poppers
+  def handle_call({:push, item}, _, {max, @empty_queue, :pop, [next|rest]}) do
+    send elem(next, 0), {:awaken, item}
+    {:reply, nil, {max, @empty_queue, :pop, rest}}
+  end
+
+  # start a list of waiting poppers when the first client tries to pop from the empty queue
   def handle_call(:pop, from, {max, @empty_queue}) do
-    {:reply, :block, {max, @empty_queue, :pop, from}}
+    {:reply, :block, {max, @empty_queue, :pop, [from]}}
+  end
+
+  # prepend new waiter to list of waiting poppers when they try to pop from an empty queue
+  def handle_call(:pop, from, {max, @empty_queue, :pop, [next|rest]}) do
+    {:reply, :block, {max, @empty_queue, :pop, [from | [next|rest]]}}
+  end
+
+  # accept an item pushed by a single waiting pusher
+  def handle_call(:pop, _, {max, queue, :push, [{next, item}] }) do
+    {{:value, popped_item}, popped_queue} = :queue.out(queue)
+    send elem(next, 0), :awaken
+    final_queue = :queue.in(item, popped_queue)
+    {:reply, popped_item, {max, final_queue}}
+  end
+
+  # accept an item pushed by the last in a list of waiting pushers (taking last makes this FIFO)
+  def handle_call(:pop, _, {max, queue, :push, waiters}) when is_list waiters do
+    {{:value, popped_item}, popped_queue} = :queue.out(queue)
+    {next, item} = List.last waiters
+    rest = List.delete_at waiters, -1
+    send elem(next, 0), :awaken
+    final_queue = :queue.in(item, popped_queue)
+    {:reply, popped_item, {max, final_queue, :push, rest}}
   end
 
   def handle_call(:pop, _, {max, queue}) do
     {{:value, popped_item}, new_queue} = :queue.out(queue)
     {:reply, popped_item, {max, new_queue}}
-  end
-
-  def handle_call(:pop, _, {max, queue, :push, waiter, item}) do
-    {{:value, popped_item}, popped_queue} = :queue.out(queue)
-    send elem(waiter, 0), :awaken
-    final_queue = :queue.in(item, popped_queue)
-    {:reply, popped_item, {max, final_queue}}
   end
 
   @doc """

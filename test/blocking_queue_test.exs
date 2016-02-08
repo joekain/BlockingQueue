@@ -119,4 +119,56 @@ defmodule BlockingQueueTest do
       end
     end
   end
+
+  test "BlockingQueue can have more than one client waiting to pop from an empty queue" do
+    {:ok, pid} = BlockingQueue.start_link(1)
+
+    task1 = Task.async(fn -> BlockingQueue.pop(pid) end)
+    task2 = Task.async(fn -> BlockingQueue.pop(pid) end)
+
+    # @cboggs: This test passes falsely if this sleep is not present. I suspect this is due to `task2` failing before `ref2` can monitor it, which (by itself) does not in cause a failure
+    :timer.sleep 1
+
+    ref1 = Process.monitor(task1.pid)
+    ref2 = Process.monitor(task2.pid)
+
+    BlockingQueue.push(pid, "Hello")
+    BlockingQueue.push(pid, "World")
+
+    assert_receive {:DOWN, ^ref1, :process, _, :normal}, 100
+    assert_receive {:DOWN, ^ref2, :process, _, :normal}, 100
+  end
+
+  test "BlockingQueue can have more than one client waiting to push to a full queue" do
+    {:ok, pid} = BlockingQueue.start_link(1)
+    BlockingQueue.push(pid, "Hello")
+
+    task1 = Task.async(fn -> BlockingQueue.push(pid, "Awesome") end)
+    task2 = Task.async(fn -> BlockingQueue.push(pid, "World") end)
+
+    # @cboggs: This test passes falsely if this sleep is not present. I suspect this is due to `task2` failing before `ref2` can monitor it, which (by itself) does not in cause a failure
+    :timer.sleep 1
+
+    ref1 = Process.monitor(task1.pid)
+    ref2 = Process.monitor(task2.pid)
+
+    BlockingQueue.pop(pid)
+    BlockingQueue.pop(pid)
+
+    assert_receive {:DOWN, ^ref1, :process, _, :normal}, 100
+    assert_receive {:DOWN, ^ref2, :process, _, :normal}, 100
+  end
+
+  test "BlockingQueue returns results to multiple push waiters in LIFO order" do
+    {:ok, pid} = BlockingQueue.start_link(1)
+    parent = self
+    range = 1..10
+    expected_result = Enum.into(range, [])
+
+    # tiny sleep included to make absolutely sure we spawn waiters in the right order
+    for item <- range, do: Task.async(fn -> BlockingQueue.push(pid, item) end); :timer.sleep 1
+
+    assert expected_result == Enum.into(range, [], fn _ -> BlockingQueue.pop(pid) end)
+  end
+
 end
