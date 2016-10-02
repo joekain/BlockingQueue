@@ -129,24 +129,37 @@ defmodule BlockingQueue do
     {:reply, popped_item, {max, new_queue}}
   end
 
-  # check if an item is in the queue
-  def handle_call(:is_empty, _, {max, queue}) do
-    {:reply, :queue.is_empty(queue), {max, queue}}
+  # determine is the queue is empty
+  def handle_call(:is_empty, _, s) do
+    {:reply, :queue.is_empty(elem(s, 1)), s}
   end
 
   # determine the length of the queue
-  def handle_call(:len, _, {max, queue}) do
-    {:reply, :queue.len(queue), {max, queue}}
+  def handle_call(:len, _, s) do
+    {:reply, :queue.len(elem(s, 1)), s}
   end
 
   # check if an item is in the queue
-  def handle_call({:member, item}, _, {max, queue}) do
-    {:reply, :queue.member(item, queue), {max, queue}}
+  def handle_call({:member, item}, _, s) do
+    {:reply, :queue.member(item, elem(s, 1)), s}
   end
 
   # remove all items using predicate function
   def handle_call({:filter, f}, _, {max, queue}) do
     {:reply, nil, {max, :queue.filter(f, queue)}}
+  end
+
+  # remove all items using predicate function, handling push waiters
+  def handle_call({:filter, f}, _, {max, queue, :push, waiters}) when is_list waiters do
+    filtered_queue = :queue.filter(f, queue)
+    {still_waiters, filtered_waiters} = Enum.partition waiters, &f.(elem(&1, 1))
+    Enum.each filtered_waiters, &send(elem(elem(&1, 0), 0), :awaken)
+    {rest, next} = Enum.split still_waiters, :queue.len(filtered_queue) - max
+    final_queue = Enum.reduce(Enum.reverse(next), filtered_queue, fn({next, item}, q) -> 
+      send(elem(next, 0), :awaken) 
+      :queue.in(item, q) 
+    end)
+    {:reply, nil, (if Enum.empty?(rest), do: {max, filtered_queue}, else: {max, filtered_queue, :push, rest}) }
   end
 
   @doc """

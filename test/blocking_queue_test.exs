@@ -213,4 +213,24 @@ defmodule BlockingQueueTest do
     assert "There" == BlockingQueue.pop(pid)
   end
 
+  test "BlockingQueue should handle push waiters when filtering" do
+    {:ok, pid} = BlockingQueue.start_link(2)
+    BlockingQueue.push(pid, "Hello")
+    BlockingQueue.push(pid, "World")
+
+    task1 = Task.async(fn -> BlockingQueue.push(pid, "Awesome") end)
+    task2 = Task.async(fn -> BlockingQueue.push(pid, "World") end)
+
+    # @cboggs: This test passes falsely if this sleep is not present. I suspect this is due to `task2` failing before `ref2` can monitor it, which (by itself) does not in cause a failure
+    :timer.sleep 1
+
+    ref1 = Process.monitor(task1.pid)
+    ref2 = Process.monitor(task2.pid)
+
+    BlockingQueue.filter(pid, &( &1 != "World"))
+
+    assert_receive {:DOWN, ^ref1, :process, _, :normal}, 100
+    assert_receive {:DOWN, ^ref2, :process, _, :normal}, 100
+  end
+
 end
