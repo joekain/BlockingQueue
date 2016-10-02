@@ -26,6 +26,35 @@ defmodule BlockingQueueTest do
     assert "World" == BlockingQueue.pop(pid)
   end
 
+  test "BlockingQueue empty? should test if the queue is empty" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+    assert true == BlockingQueue.empty?(pid)
+    BlockingQueue.push(pid, "Hello")
+    assert false == BlockingQueue.empty?(pid)
+    BlockingQueue.pop(pid)
+    assert true == BlockingQueue.empty?(pid)
+  end
+
+  test "BlockingQueue size should return the length of the queue" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+    assert 0 == BlockingQueue.size(pid)
+    BlockingQueue.push(pid, "Hello")
+    assert 1 == BlockingQueue.size(pid)
+    BlockingQueue.push(pid, "World")
+    assert 2 == BlockingQueue.size(pid)
+    BlockingQueue.pop(pid)
+    assert 1 == BlockingQueue.size(pid)
+    BlockingQueue.pop(pid)
+    assert 0 == BlockingQueue.size(pid)
+  end
+
+  test "BlockingQueue member? should test if an item is in the queue" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+    BlockingQueue.push(pid, "Hello")
+    assert true == BlockingQueue.member?(pid, "Hello")
+    assert false == BlockingQueue.member?(pid, "World")
+  end
+
   test "BlockingQueue should be able to accept a Stream of values" do
     {:ok, pid} = BlockingQueue.start_link(5)
 

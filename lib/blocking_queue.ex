@@ -129,6 +129,21 @@ defmodule BlockingQueue do
     {:reply, popped_item, {max, new_queue}}
   end
 
+  # check if an item is in the queue
+  def handle_call(:is_empty, _, {max, queue}) do
+    {:reply, :queue.is_empty(queue), {max, queue}}
+  end
+
+  # determine the length of the queue
+  def handle_call(:len, _, {max, queue}) do
+    {:reply, :queue.len(queue), {max, queue}}
+  end
+
+  # check if an item is in the queue
+  def handle_call({:member, item}, _, {max, queue}) do
+    {:reply, :queue.member(item, queue), {max, queue}}
+  end
+
   @doc """
   Pushes a new item into the queue.  Blocks if the queue is full.
 
@@ -188,4 +203,37 @@ defmodule BlockingQueue do
   def pop_stream(pid) do
     Stream.repeatedly(fn -> BlockingQueue.pop(pid) end)
   end
+
+
+  @doc """
+  Tests if the queue is empty and returns true if so, otherwise false.
+
+  `pid` is the process ID of the BlockingQueue server.
+  """
+  @spec empty?(pid, integer) :: boolean
+  def empty?(pid, timeout \\ 5000) do
+    GenServer.call(pid, :is_empty, timeout)
+  end
+
+  @doc """
+  Calculates and returns the number of items in the queue.
+
+  `pid` is the process ID of the BlockingQueue server.
+  """
+  @spec size(pid, integer) :: non_neg_integer
+  def size(pid, timeout \\ 5000) do
+    GenServer.call(pid, :len, timeout)
+  end
+
+  @doc """
+  Returns true if `item` matches some element in the queue, otherwise false.
+
+  `pid` is the process ID of the BlockingQueue server.
+  """
+  @spec member?(pid, any, integer) :: boolean
+  def member?(pid, item, timeout \\ 5000) do
+    GenServer.call(pid, {:member, item}, timeout)
+  end
+
+
 end
