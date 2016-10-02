@@ -200,4 +200,17 @@ defmodule BlockingQueueTest do
     assert expected_result == Enum.into(range, [], fn _ -> BlockingQueue.pop(pid) end)
   end
 
+  test "BlockingQueue should filter the queue according to the provided function" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+    BlockingQueue.push(pid, "Hello")
+    BlockingQueue.push(pid, "World")
+    BlockingQueue.push(pid, "There")
+    BlockingQueue.push(pid, "World")
+    BlockingQueue.filter(pid, &( &1 != "World"))
+    assert false == BlockingQueue.member?(pid, "World")
+    assert 2 == BlockingQueue.size(pid)
+    assert "Hello" == BlockingQueue.pop(pid)
+    assert "There" == BlockingQueue.pop(pid)
+  end
+
 end

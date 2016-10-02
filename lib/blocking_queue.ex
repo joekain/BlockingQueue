@@ -144,6 +144,11 @@ defmodule BlockingQueue do
     {:reply, :queue.member(item, queue), {max, queue}}
   end
 
+  # remove all items using predicate function
+  def handle_call({:filter, f}, _, {max, queue}) do
+    {:reply, nil, {max, :queue.filter(f, queue)}}
+  end
+
   @doc """
   Pushes a new item into the queue.  Blocks if the queue is full.
 
@@ -235,5 +240,15 @@ defmodule BlockingQueue do
     GenServer.call(pid, {:member, item}, timeout)
   end
 
+  @doc """
+  Filters the queue by removing all items for which the function `func` returns false.
+
+  `pid` is the process ID of the BlockingQueue server.
+  `func` is the predicate used to filter the queue.
+  """
+  @spec filter(pid, (any -> boolean), integer) :: nil
+  def filter(pid, func, timeout \\ 5000) when is_function(func, 1) do
+    GenServer.call(pid, {:filter, func}, timeout)
+  end
 
 end
