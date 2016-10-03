@@ -156,10 +156,10 @@ defmodule BlockingQueue do
     Enum.each filtered_waiters, &send(elem(elem(&1, 0), 0), :awaken)
     {rest, next} = Enum.split still_waiters, :queue.len(filtered_queue) - max
     final_queue = Enum.reduce(Enum.reverse(next), filtered_queue, fn({next, item}, q) -> 
-      send(elem(next, 0), :awaken) 
+      send(elem(next, 0), :awaken)
       :queue.in(item, q) 
     end)
-    {:reply, nil, (if Enum.empty?(rest), do: {max, filtered_queue}, else: {max, filtered_queue, :push, rest}) }
+    {:reply, nil, (if Enum.empty?(rest), do: {max, final_queue}, else: {max, final_queue, :push, rest}) }
   end
 
   @doc """
