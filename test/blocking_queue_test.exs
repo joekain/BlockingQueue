@@ -26,6 +26,35 @@ defmodule BlockingQueueTest do
     assert "World" == BlockingQueue.pop(pid)
   end
 
+  test "BlockingQueue empty? should test if the queue is empty" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+    assert true == BlockingQueue.empty?(pid)
+    BlockingQueue.push(pid, "Hello")
+    assert false == BlockingQueue.empty?(pid)
+    BlockingQueue.pop(pid)
+    assert true == BlockingQueue.empty?(pid)
+  end
+
+  test "BlockingQueue size should return the length of the queue" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+    assert 0 == BlockingQueue.size(pid)
+    BlockingQueue.push(pid, "Hello")
+    assert 1 == BlockingQueue.size(pid)
+    BlockingQueue.push(pid, "World")
+    assert 2 == BlockingQueue.size(pid)
+    BlockingQueue.pop(pid)
+    assert 1 == BlockingQueue.size(pid)
+    BlockingQueue.pop(pid)
+    assert 0 == BlockingQueue.size(pid)
+  end
+
+  test "BlockingQueue member? should test if an item is in the queue" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+    BlockingQueue.push(pid, "Hello")
+    assert true == BlockingQueue.member?(pid, "Hello")
+    assert false == BlockingQueue.member?(pid, "World")
+  end
+
   test "BlockingQueue should be able to accept a Stream of values" do
     {:ok, pid} = BlockingQueue.start_link(5)
 
@@ -169,6 +198,39 @@ defmodule BlockingQueueTest do
     for item <- range, do: Task.async(fn -> BlockingQueue.push(pid, item) end); :timer.sleep 1
 
     assert expected_result == Enum.into(range, [], fn _ -> BlockingQueue.pop(pid) end)
+  end
+
+  test "BlockingQueue should filter the queue according to the provided function" do
+    {:ok, pid} = BlockingQueue.start_link(5)
+    BlockingQueue.push(pid, "Hello")
+    BlockingQueue.push(pid, "World")
+    BlockingQueue.push(pid, "There")
+    BlockingQueue.push(pid, "World")
+    BlockingQueue.filter(pid, &( &1 != "World"))
+    assert false == BlockingQueue.member?(pid, "World")
+    assert 2 == BlockingQueue.size(pid)
+    assert "Hello" == BlockingQueue.pop(pid)
+    assert "There" == BlockingQueue.pop(pid)
+  end
+
+  test "BlockingQueue should handle push waiters when filtering" do
+    {:ok, pid} = BlockingQueue.start_link(2)
+    BlockingQueue.push(pid, "Hello")
+    BlockingQueue.push(pid, "World")
+
+    task1 = Task.async(fn -> BlockingQueue.push(pid, "Awesome") end)
+    task2 = Task.async(fn -> BlockingQueue.push(pid, "World") end)
+
+    # @cboggs: This test passes falsely if this sleep is not present. I suspect this is due to `task2` failing before `ref2` can monitor it, which (by itself) does not in cause a failure
+    :timer.sleep 1
+
+    ref1 = Process.monitor(task1.pid)
+    ref2 = Process.monitor(task2.pid)
+
+    BlockingQueue.filter(pid, &( &1 != "World"))
+
+    assert_receive {:DOWN, ^ref1, :process, _, :normal}, 100
+    assert_receive {:DOWN, ^ref2, :process, _, :normal}, 100
   end
 
 end

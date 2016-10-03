@@ -129,6 +129,39 @@ defmodule BlockingQueue do
     {:reply, popped_item, {max, new_queue}}
   end
 
+  # determine is the queue is empty
+  def handle_call(:is_empty, _, s) do
+    {:reply, :queue.is_empty(elem(s, 1)), s}
+  end
+
+  # determine the length of the queue
+  def handle_call(:len, _, s) do
+    {:reply, :queue.len(elem(s, 1)), s}
+  end
+
+  # check if an item is in the queue
+  def handle_call({:member, item}, _, s) do
+    {:reply, :queue.member(item, elem(s, 1)), s}
+  end
+
+  # remove all items using predicate function
+  def handle_call({:filter, f}, _, {max, queue}) do
+    {:reply, nil, {max, :queue.filter(f, queue)}}
+  end
+
+  # remove all items using predicate function, handling push waiters
+  def handle_call({:filter, f}, _, {max, queue, :push, waiters}) when is_list waiters do
+    filtered_queue = :queue.filter(f, queue)
+    {still_waiters, filtered_waiters} = Enum.partition waiters, &f.(elem(&1, 1))
+    Enum.each filtered_waiters, &send(elem(elem(&1, 0), 0), :awaken)
+    {rest, next} = Enum.split still_waiters, :queue.len(filtered_queue) - max
+    final_queue = Enum.reduce(Enum.reverse(next), filtered_queue, fn({next, item}, q) -> 
+      send(elem(next, 0), :awaken) 
+      :queue.in(item, q) 
+    end)
+    {:reply, nil, (if Enum.empty?(rest), do: {max, filtered_queue}, else: {max, filtered_queue, :push, rest}) }
+  end
+
   @doc """
   Pushes a new item into the queue.  Blocks if the queue is full.
 
@@ -188,4 +221,47 @@ defmodule BlockingQueue do
   def pop_stream(pid) do
     Stream.repeatedly(fn -> BlockingQueue.pop(pid) end)
   end
+
+
+  @doc """
+  Tests if the queue is empty and returns true if so, otherwise false.
+
+  `pid` is the process ID of the BlockingQueue server.
+  """
+  @spec empty?(pid, integer) :: boolean
+  def empty?(pid, timeout \\ 5000) do
+    GenServer.call(pid, :is_empty, timeout)
+  end
+
+  @doc """
+  Calculates and returns the number of items in the queue.
+
+  `pid` is the process ID of the BlockingQueue server.
+  """
+  @spec size(pid, integer) :: non_neg_integer
+  def size(pid, timeout \\ 5000) do
+    GenServer.call(pid, :len, timeout)
+  end
+
+  @doc """
+  Returns true if `item` matches some element in the queue, otherwise false.
+
+  `pid` is the process ID of the BlockingQueue server.
+  """
+  @spec member?(pid, any, integer) :: boolean
+  def member?(pid, item, timeout \\ 5000) do
+    GenServer.call(pid, {:member, item}, timeout)
+  end
+
+  @doc """
+  Filters the queue by removing all items for which the function `func` returns false.
+
+  `pid` is the process ID of the BlockingQueue server.
+  `func` is the predicate used to filter the queue.
+  """
+  @spec filter(pid, (any -> boolean), integer) :: nil
+  def filter(pid, func, timeout \\ 5000) when is_function(func, 1) do
+    GenServer.call(pid, {:filter, func}, timeout)
+  end
+
 end
