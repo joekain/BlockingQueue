@@ -190,12 +190,16 @@ defmodule BlockingQueueTest do
 
   test "BlockingQueue returns results to multiple push waiters in LIFO order" do
     {:ok, pid} = BlockingQueue.start_link(1)
-    parent = self
     range = 1..10
     expected_result = Enum.into(range, [])
 
     # tiny sleep included to make absolutely sure we spawn waiters in the right order
-    for item <- range, do: Task.async(fn -> BlockingQueue.push(pid, item) end); :timer.sleep 1
+    for item <- range do
+      Task.async(fn ->
+        BlockingQueue.push(pid, item)
+      end);
+      :timer.sleep 1
+    end
 
     assert expected_result == Enum.into(range, [], fn _ -> BlockingQueue.pop(pid) end)
   end
