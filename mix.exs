@@ -4,12 +4,12 @@ defmodule BlockingQueue.Mixfile do
   def project do
     [app: :blocking_queue,
      version: "1.3.0",
-     elixir: "~> 1.0",
+     elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps,
-     description: description,
-     package: package]
+     deps: deps(),
+     description: description(),
+     package: package()]
   end
 
   def application do
@@ -18,11 +18,11 @@ defmodule BlockingQueue.Mixfile do
 
   defp deps do
     [
-      {:excheck, "~> 0.2", only: :test},
+      {:excheck, "~> 0.5", only: :test},
       {:triq, github: "triqng/triq", only: :test},
       {:inch_ex, "~> 0.5.4", only: :docs},
-      {:earmark, "~> 0.1", only: :dev},
-      {:ex_doc, "~> 0.10", only: :dev}
+      {:earmark, "~> 1.1.0", only: :dev},
+      {:ex_doc, "~> 0.14", only: :dev}
     ]
   end
 
