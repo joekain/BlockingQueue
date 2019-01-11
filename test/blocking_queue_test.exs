@@ -98,7 +98,7 @@ defmodule BlockingQueueTest do
   test "BlockingQueue pop on empty queue can wait beyond GenServer call timeout" do
     {:ok, pid} = BlockingQueue.start_link(5)
 
-    task = Task.async(fn -> BlockingQueue.pop(pid, 5)end)
+    task = Task.async(fn -> BlockingQueue.pop(pid, 5) end)
     ref = Process.monitor(task.pid)
 
     :timer.sleep 10
@@ -111,7 +111,7 @@ defmodule BlockingQueueTest do
 
     BlockingQueue.push pid, "Hello"
 
-    task = Task.async(fn -> BlockingQueue.push(pid, "World", 5)end)
+    task = Task.async(fn -> BlockingQueue.push(pid, "World", 5) end)
     ref = Process.monitor(task.pid)
 
     :timer.sleep 10
@@ -120,7 +120,7 @@ defmodule BlockingQueueTest do
   end
 
   property "BlockingQueue supports async and blocking pushes and pops" do
-    for_all xs in list(int) do
+    for_all xs in list(int()) do
       implies length(xs) > 0 do
         {:ok, pid} = BlockingQueue.start_link(5)
         Task.async(fn ->
@@ -137,7 +137,7 @@ defmodule BlockingQueueTest do
   end
 
   property "BlockingQueue stream API supports blocking pushes and pops" do
-    for_all xs in list(int) do
+    for_all xs in list(int()) do
       implies length(xs) > 0 do
         {:ok, pid} = BlockingQueue.start_link(5)
 

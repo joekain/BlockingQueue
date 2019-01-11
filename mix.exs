@@ -7,32 +7,32 @@ defmodule BlockingQueue.Mixfile do
      elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps,
-     description: description,
-     package: package]
+     deps: deps(),
+     description: description(),
+     package: package()]
   end
 
   def application do
     [applications: [:logger]]
   end
 
-  defp deps do
+  defp deps() do
     [
-      {:excheck, "~> 0.2", only: :test},
-      {:triq, github: "triqng/triq", only: :test},
-      {:inch_ex, "~> 0.5.4", only: :docs},
-      {:earmark, "~> 0.1", only: :dev},
-      {:ex_doc, "~> 0.10", only: :dev}
+      {:excheck, "~> 0.6", only: :test},
+      {:triq, "~> 1.3", only: :test},
+      {:inch_ex, github: "rrrene/inch_ex", only: [:dev, :test]},
+      {:earmark, "~> 1.3.1", only: :dev},
+      {:ex_doc, "~> 0.19.2", only: :dev}
     ]
   end
 
-  defp description do
+  defp description() do
   """
   BlockingQueue is a simple queue implemented as a GenServer.  It has a fixed maximum length established when it is created.
   """
   end
 
-  defp package do
+  defp package() do
     [files: ["lib", "mix.exs", "README.md", "LICENSE"],
      maintainers: ["Joseph Kain"],
      licenses: ["MIT"],
