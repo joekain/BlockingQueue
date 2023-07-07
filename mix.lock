@@ -1,6 +1,15 @@
-%{"earmark": {:hex, :earmark, "0.1.17", "a2269e72ff85501bdb58c2de9edc0a9a17a4be2757883eed1f601b30494ed2bf", [:mix], []},
-  "ex_doc": {:hex, :ex_doc, "0.10.0", "f49c237250b829df986486b38f043e6f8e19d19b41101987f7214543f75947ec", [:mix], [{:earmark, "~> 0.1.17 or ~> 0.2", [hex: :earmark, optional: true]}]},
-  "excheck": {:hex, :excheck, "0.2.3", "aa6387c991c76963db542d7d0be6d6b3e14b1932dcb229bb1548093ba8aceae8", [:mix], []},
-  "inch_ex": {:hex, :inch_ex, "0.5.4", "a2b032ad141a335a0a119f49b157b36326f5928d16a1d129b0f582398fdc25d2", [:mix], [{:poison, "~> 1.5 or ~> 2.0", [hex: :poison, optional: false]}]},
+%{
+  "bunt": {:hex, :bunt, "0.2.1", "e2d4792f7bc0ced7583ab54922808919518d0e57ee162901a16a1b6664ef3b14", [:mix], [], "hexpm", "a330bfb4245239787b15005e66ae6845c9cd524a288f0d141c148b02603777a5"},
+  "earmark": {:hex, :earmark, "1.4.38", "ba8fda946c259c6e8f6759d3647d448e9216e2c0afed8c6ae7f8ce1f7072a497", [:mix], [{:earmark_parser, "~> 1.4.32", [hex: :earmark_parser, repo: "hexpm", optional: false]}], "hexpm", "f938e30de4167e7d8f3bf588b01dc041138278dda1e5a13fb9ec89b43dd5ec7f"},
+  "earmark_parser": {:hex, :earmark_parser, "1.4.33", "3c3fd9673bb5dcc9edc28dd90f50c87ce506d1f71b70e3de69aa8154bc695d44", [:mix], [], "hexpm", "2d526833729b59b9fdb85785078697c72ac5e5066350663e5be6a1182da61b8f"},
+  "ex_doc": {:hex, :ex_doc, "0.30.0", "ed94bf5183f559d2f825e4f866cc0eab277bbb17da76aff40f8e0f149656943e", [:mix], [{:earmark_parser, "~> 1.4.31", [hex: :earmark_parser, repo: "hexpm", optional: false]}, {:makeup_elixir, "~> 0.14", [hex: :makeup_elixir, repo: "hexpm", optional: false]}, {:makeup_erlang, "~> 0.1", [hex: :makeup_erlang, repo: "hexpm", optional: false]}], "hexpm", "6743fe46704fe27e2f2558faa61f00e5356528768807badb2092d38476d6dac2"},
+  "excheck": {:hex, :excheck, "0.6.0", "f8595a8ac2c0abc0d060c1a4fce7d26f41574543366a52d5f3c84de30a69747b", [:mix], [], "hexpm", "50a94eb60e79c886be425af6b6f09c8055556ff8ad00e474dba72172574b8d28"},
+  "inch_ex": {:hex, :inch_ex, "2.0.0", "24268a9284a1751f2ceda569cd978e1fa394c977c45c331bb52a405de544f4de", [:mix], [{:bunt, "~> 0.2", [hex: :bunt, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "96d0ec5ecac8cf63142d02f16b7ab7152cf0f0f1a185a80161b758383c9399a8"},
+  "jason": {:hex, :jason, "1.4.1", "af1504e35f629ddcdd6addb3513c3853991f694921b1b9368b0bd32beb9f1b63", [:mix], [{:decimal, "~> 1.0 or ~> 2.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm", "fbb01ecdfd565b56261302f7e1fcc27c4fb8f32d56eab74db621fc154604a7a1"},
+  "makeup": {:hex, :makeup, "1.1.0", "6b67c8bc2882a6b6a445859952a602afc1a41c2e08379ca057c0f525366fc3ca", [:mix], [{:nimble_parsec, "~> 1.2.2 or ~> 1.3", [hex: :nimble_parsec, repo: "hexpm", optional: false]}], "hexpm", "0a45ed501f4a8897f580eabf99a2e5234ea3e75a4373c8a52824f6e873be57a6"},
+  "makeup_elixir": {:hex, :makeup_elixir, "0.16.1", "cc9e3ca312f1cfeccc572b37a09980287e243648108384b97ff2b76e505c3555", [:mix], [{:makeup, "~> 1.0", [hex: :makeup, repo: "hexpm", optional: false]}, {:nimble_parsec, "~> 1.2.3 or ~> 1.3", [hex: :nimble_parsec, repo: "hexpm", optional: false]}], "hexpm", "e127a341ad1b209bd80f7bd1620a15693a9908ed780c3b763bccf7d200c767c6"},
+  "makeup_erlang": {:hex, :makeup_erlang, "0.1.2", "ad87296a092a46e03b7e9b0be7631ddcf64c790fa68a9ef5323b6cbb36affc72", [:mix], [{:makeup, "~> 1.0", [hex: :makeup, repo: "hexpm", optional: false]}], "hexpm", "f3f5a1ca93ce6e092d92b6d9c049bcda58a3b617a8d888f8e7231c85630e8108"},
+  "nimble_parsec": {:hex, :nimble_parsec, "1.3.1", "2c54013ecf170e249e9291ed0a62e5832f70a476c61da16f6aac6dca0189f2af", [:mix], [], "hexpm", "2682e3c0b2eb58d90c6375fc0cc30bc7be06f365bf72608804fb9cffa5e1b167"},
   "poison": {:hex, :poison, "2.2.0", "4763b69a8a77bd77d26f477d196428b741261a761257ff1cf92753a0d4d24a63", [:mix], []},
-  "triq": {:git, "https://github.com/triqng/triq.git", "2c497398e020e06db8496f1d89f12481cc5adab9", []}}
+  "triq": {:hex, :triq, "1.3.0", "d9ed60f3cd2b6bacbb721bc9873e67e07b02e5b97c63d40db35b12670a7f1bf4", [:rebar3], [], "hexpm", "e01eb99fc53099ded985bb0c629ea0d2b0bfcf5b9a4178e0a93b08dbe51aa8cd"},
+}
